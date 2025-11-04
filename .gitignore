@@ -1,0 +1,4 @@
+__pycache__/
+venv_win/
+venv_win/pyvenv.cfg
+gpt-whisper.py
