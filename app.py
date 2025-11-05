@@ -60,10 +60,9 @@ def generate_haiku_from_audio(audio_file: str) -> str:
     description = GetText.description(audio_file)
 
     prompt = (
-        f"Respond with a sentimental haiku (5-7-5 syllable structure) based on this description: {description} \
-        Output ONLY THE HAIKU. You are a poetic assistant. Always generate sentimental haikus that capture the mood and emotion of the input. \
-        Output the haiku and nothing else.\
-        A haiku has strictly 3 lines with a 5-7-5 syllable count: Line 1: 5 syllables, Line 2: 7 syllables, Line 3: 5 syllables"
+        f"You are a poetic assistant. Respond with a sentimental haiku (5-7-5 syllable structure) based on this description: {description} \
+        Output ONLY THE HAIKU. Always generate sentimental haikus that capture the mood and emotion of the input. \
+        Output the haiku and nothing else."
     )
 
     response = ollama.chat(

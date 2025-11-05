@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AUDIKU - Audio Haiku Generator</title>
+    <title>AUDIKU - Generate Haiku from Audio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -259,7 +259,7 @@
 
                 showResults(data.description, data.haiku);
             } catch (err) {
-                showError(`エラー: ${err.message}. ポート5000でバックエンドが起動していることを確認してください。`);
+                showError(`Error: ${err.message}. Please make sure your backend is running on port 5000.`);
             } finally {
                 setLoading(false);
             }
