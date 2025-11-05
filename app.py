@@ -1,5 +1,7 @@
-# pip install openai-whisper tensorflow tensorflow_hub librosa numpy ollama
-
+# app.py
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import os
 import csv
 import numpy as np
 import librosa
@@ -8,9 +10,15 @@ import ollama
 import tensorflow as tf
 import tensorflow_hub as hub
 
+app = Flask(__name__)
+CORS(app)  # This allows your React app to call this API
+
+# Create temp directory for uploaded files
+os.makedirs('./temp', exist_ok=True)
+
 class GetText:
     @staticmethod
-    def description(audio_path: str = "./audio_samples/baby-laugh.mp3") -> str:
+    def description(audio_path: str) -> str:
         """Return a combined speech + sound description from audio."""
         whisper_model = whisper.load_model("base")
         yamnet_model = hub.load('https://tfhub.dev/google/yamnet/1')
@@ -25,10 +33,10 @@ class GetText:
 
         waveform, sr = librosa.load(audio_path, sr=16000)
 
-        result = whisper_model.transcribe(audio_path, language="en")        # speech
+        result = whisper_model.transcribe(audio_path, language="en")
         speech_text = result["text"]
 
-        chunk_duration = 3                              # sound  - split into 3a chunks
+        chunk_duration = 3
         chunk_samples = int(chunk_duration * sr)
         num_chunks = int(np.ceil(len(waveform) / chunk_samples))
 
@@ -66,10 +74,31 @@ def generate_haiku_from_audio(audio_file: str) -> str:
     haiku = response.message["content"].replace('\\n', '\n')
     return haiku
 
+@app.route('/api/generate-haiku', methods=['POST'])
+def generate_haiku():
+    try:
+        # Check if file was uploaded
+        if 'audio' in request.files:
+            audio = request.files['audio']
+            audio_path = f"./temp/{audio.filename}"
+            audio.save(audio_path)
+        # Check if path was provided
+        elif request.json and 'path' in request.json:
+            audio_path = request.json['path']
+        else:
+            return jsonify({'error': 'No audio file or path provided'}), 400
+        
+        # Generate description and haiku
+        description = GetText.description(audio_path)
+        haiku = generate_haiku_from_audio(audio_path)
+        
+        return jsonify({
+            'description': description,
+            'haiku': haiku
+        })
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-# example usage
-if __name__ == "__main__":
-    audio_file = "./audio_samples/rock.mp3"
-    haiku = generate_haiku_from_audio(audio_file)
-    print(haiku)
-
+if __name__ == '__main__':
+    app.run(port=5000, debug=True)
