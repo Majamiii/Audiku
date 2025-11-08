@@ -1,5 +1,8 @@
 # pip install openai-whisper tensorflow tensorflow_hub librosa numpy ollama
 
+# only command-line interface, no gui
+# manually input of audio path
+
 import csv
 import numpy as np
 import librosa
@@ -67,7 +70,7 @@ def generate_haiku_from_audio(audio_file: str) -> str:
     return haiku
 
 
-# example usage
+# example
 if __name__ == "__main__":
     audio_file = "./audio_samples/rock.mp3"
     haiku = generate_haiku_from_audio(audio_file)

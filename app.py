@@ -11,9 +11,8 @@ import tensorflow as tf
 import tensorflow_hub as hub
 
 app = Flask(__name__)
-CORS(app)  # This allows your React app to call this API
+CORS(app)
 
-# Create temp directory for uploaded files
 os.makedirs('./temp', exist_ok=True)
 
 class GetText:
@@ -33,10 +32,10 @@ class GetText:
 
         waveform, sr = librosa.load(audio_path, sr=16000)
 
-        result = whisper_model.transcribe(audio_path, language="en")
+        result = whisper_model.transcribe(audio_path, language="en")            # languange that whisper will try to hear and transcribe
         speech_text = result["text"]
 
-        chunk_duration = 3
+        chunk_duration = 4
         chunk_samples = int(chunk_duration * sr)
         num_chunks = int(np.ceil(len(waveform) / chunk_samples))
 
@@ -62,7 +61,7 @@ def generate_haiku_from_audio(audio_file: str) -> str:
     prompt = (
         f"You are a poetic assistant. Respond with a sentimental haiku (5-7-5 syllable structure) based on this description: {description} \
         Output ONLY THE HAIKU. Always generate sentimental haikus that capture the mood and emotion of the input. \
-        Output the haiku and nothing else."
+        NO explanations, NO introductions, NO additional text. Output the haiku and nothing else."
     )
 
     response = ollama.chat(
@@ -70,24 +69,42 @@ def generate_haiku_from_audio(audio_file: str) -> str:
         messages=[{"role": "user", "content": prompt}]
     )
 
-    haiku = response.message["content"].replace('\\n', '\n')
+    haiku = response.message["content"].strip()
+    
+    # remove common prefixes if they still appear
+    unwanted_prefixes = [
+        "here is your haiku",
+        "here's your haiku",
+        "here is a haiku",
+        "here's a haiku",
+        "based on",
+    ]
+    
+    haiku_lower = haiku.lower()
+    for prefix in unwanted_prefixes:
+        if haiku_lower.startswith(prefix):
+            # only returning the haiku based on the position of the newline character
+            first_newline = haiku.find('\n')
+            if first_newline != -1:
+                haiku = haiku[first_newline + 1:].strip()
+            break
+    
     return haiku
 
 @app.route('/api/generate-haiku', methods=['POST'])
 def generate_haiku():
     try:
-        # Check if file was uploaded
+        # check for file
         if 'audio' in request.files:
             audio = request.files['audio']
             audio_path = f"./temp/{audio.filename}"
             audio.save(audio_path)
-        # Check if path was provided
+        # check for path
         elif request.json and 'path' in request.json:
             audio_path = request.json['path']
         else:
             return jsonify({'error': 'No audio file or path provided'}), 400
         
-        # Generate description and haiku
         description = GetText.description(audio_path)
         haiku = generate_haiku_from_audio(audio_path)
         
