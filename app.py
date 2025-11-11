@@ -70,7 +70,7 @@ def generate_haiku_from_audio(audio_file: str) -> str:
     )
 
     haiku = response.message["content"].strip()
-    
+    '''
     # remove common prefixes if they still appear
     unwanted_prefixes = [
         "here is your haiku",
@@ -87,7 +87,7 @@ def generate_haiku_from_audio(audio_file: str) -> str:
             first_newline = haiku.find('\n')
             if first_newline != -1:
                 haiku = haiku[first_newline + 1:].strip()
-            break
+            break'''
     
     return haiku
 
